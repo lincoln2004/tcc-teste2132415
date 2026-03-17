@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: anomaly_backend
+    restart: always
+    environment:
+      SECRET_KEY: 09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+      PROJECT_NAME: AnomalyDetect API
+      BACKEND_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      BANCO_JSON_PATH: /app/dados/banco_local.json
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - '8000:8000'
+    volumes:
+      - backend_dados:/app/dados
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anomaly_frontend
+    restart: always
+    environment:
+      BACKEND_URL: http://backend:8000
+      INICIAR_BACKEND_INTEGRADO: 'false'
+      VITE_API_URL: /api/v1
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+
+volumes:
+  backend_dados:
+  backend_uploads:
