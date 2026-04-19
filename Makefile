@@ -1,7 +1,19 @@
-PYTHON   := python
+# Detecta o sistema operacional e define os caminhos corretos do venv
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    VENV_BIN   := $(VENV_DIR)/bin
+else ifeq ($(UNAME_S),Darwin)
+    VENV_BIN   := $(VENV_DIR)/bin
+else
+    # Assume Windows (Cygwin/MSYS2 ou cmd.exe com make)
+    VENV_BIN   := $(VENV_DIR)/Scripts
+endif
+
+PYTHON   := python3
 VENV_DIR := .venv
-VENV_PY  := $(VENV_DIR)/Scripts/python
-PIP      := $(VENV_DIR)/Scripts/pip
+VENV_PY  := $(VENV_BIN)/python
+PIP      := $(VENV_BIN)/pip
+PYTEST   := $(VENV_BIN)/pytest
 
 .PHONY: help install install-frontend install-backend setup dev dev-backend dev-frontend test clean
 
@@ -65,7 +77,7 @@ dev-backend:
 # ── Testes ──────────────────────────────────────────────────────────────────
 
 test:
-	cd backend && ../$(VENV_DIR)/Scripts/pytest tests -v
+	cd backend && ../$(PYTEST) tests -v
 
 # ── Limpeza ─────────────────────────────────────────────────────────────────
 
