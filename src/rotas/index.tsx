@@ -15,6 +15,8 @@ const ListagemDatasets = lazy(() => import('../paginas/ListagemDatasets'));
 const DetalhesDataset = lazy(() => import('../paginas/DetalhesDataset'));
 const CriarAnalise = lazy(() => import('../paginas/CriarAnalise'));
 const ResultadoAnalise = lazy(() => import('../paginas/ResultadoAnalise'));
+const DadosTratados = lazy(() => import('../paginas/DadosTratados'));
+const GerarRelatorios = lazy(() => import('../paginas/GerarRelatorios'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -40,6 +42,8 @@ const AppRoutes: React.FC = () => {
             <Route path="/datasets/:id" element={<DetalhesDataset />} />
             <Route path="/analise/nova" element={<CriarAnalise />} />
             <Route path="/analise/resultado/:id" element={<ResultadoAnalise />} />
+            <Route path="/analise/:id/dados-tratados" element={<DadosTratados />} />
+            <Route path="/analise/:id/relatorios" element={<GerarRelatorios />} />
             <Route path="/historico" element={<HistoricoAnalises />} />
           </Route>
 

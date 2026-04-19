@@ -133,3 +133,9 @@ export interface CriarAnaliseInput {
   colunas_selecionadas: string[];
   parametros?: Record<string, any>;
 }
+
+export interface TipoRelatorio {
+  id: string;
+  nome: string;
+  descricao: string;
+}

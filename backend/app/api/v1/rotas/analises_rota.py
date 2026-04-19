@@ -1,8 +1,8 @@
 from typing import List
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.api.dependencias.autenticacao import obter_usuario_atual
 from app.esquemas.analise_esquema import AnaliseCriar, AnaliseResposta
@@ -88,4 +88,89 @@ async def baixar_resultado_analise(
         analise.caminho_resultado_csv,
         media_type="text/csv",
         filename=f"resultado_analise_{analise.id}.csv",
+    )
+
+
+@router.get("/tipos-relatorios")
+async def listar_tipos_relatorios() -> JSONResponse:
+    """
+    Retorna lista de tipos de relatorios disponiveis para gerar a partir das analises.
+    """
+    tipos = AnaliseServico.listar_tipos_relatorios()
+    return JSONResponse(content={"tipos": tipos})
+
+
+@router.post("/{analise_id}/gerar-relatorio")
+async def gerar_relatorio_analise(
+    analise_id: int,
+    tipo_relatorio: str = Query(..., description="Tipo de relatorio: pycaret, deepchecks, sweetviz, ydata_profiling"),
+    formato_saida: str = Query("html", description="Formato de saida: html ou pdf"),
+    usuario_atual: Usuario = Depends(obter_usuario_atual),
+) -> dict[str, str]:
+    """
+    Gera um relatorio especializado (PyCaret, DeepChecks, Sweetviz, YData-Profiling) para uma analise concluida.
+    """
+    try:
+        caminho_arquivo = await AnaliseServico.gerar_relatorio_analise(
+            analise_id=analise_id,
+            usuario_id=usuario_atual.id,
+            tipo_relatorio=tipo_relatorio,
+            formato_saida=formato_saida,
+        )
+        return {
+            "mensagem": "Relatorio gerado com sucesso.",
+            "caminho_arquivo": caminho_arquivo,
+            "tipo_relatorio": tipo_relatorio,
+            "formato_saida": formato_saida,
+        }
+    except ValueError as erro:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(erro)) from erro
+    except RuntimeError as erro:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao gerar relatorio: {erro}",
+        ) from erro
+    except Exception as erro:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro interno ao gerar relatorio: {erro}",
+        ) from erro
+
+
+@router.get("/{analise_id}/baixar-relatorio")
+async def baixar_relatorio_analise(
+    analise_id: int,
+    tipo_relatorio: str = Query(..., description="Tipo de relatorio: pycaret, deepchecks, sweetviz, ydata_profiling"),
+    usuario_atual: Usuario = Depends(obter_usuario_atual),
+) -> FileResponse:
+    """
+    Baixa o relatorio especializado previamente gerado para uma analise.
+    """
+    # Primeiro, gerar o relatorio se ainda nao existir
+    try:
+        caminho_arquivo = await AnaliseServico.gerar_relatorio_analise(
+            analise_id=analise_id,
+            usuario_id=usuario_atual.id,
+            tipo_relatorio=tipo_relatorio,
+            formato_saida="html",
+        )
+    except ValueError as erro:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(erro)) from erro
+    except Exception as erro:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao gerar relatorio: {erro}",
+        ) from erro
+
+    if not os.path.exists(caminho_arquivo):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="O arquivo do relatorio nao foi encontrado.",
+        )
+
+    nome_arquivo = f"relatorio_{tipo_relatorio}_analise_{analise_id}.html"
+    return FileResponse(
+        caminho_arquivo,
+        media_type="text/html",
+        filename=nome_arquivo,
     )

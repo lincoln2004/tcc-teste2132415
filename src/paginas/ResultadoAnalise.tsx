@@ -399,15 +399,31 @@ const ResultadoAnalise: React.FC = () => {
         </div>
 
         {analise.status === 'concluido' && (
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={baixandoArquivo}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-60"
-          >
-            {baixandoArquivo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-            Exportar CSV
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={baixandoArquivo}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-60"
+            >
+              {baixandoArquivo ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+              Exportar CSV
+            </button>
+            
+            <Link
+              to={`/analise/${analise.id}/dados-tratados`}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all flex items-center gap-2"
+            >
+              <Database className="w-5 h-5" /> Ver Dados Tratados
+            </Link>
+            
+            <Link
+              to={`/analise/${analise.id}/relatorios`}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all flex items-center gap-2"
+            >
+              <FileText className="w-5 h-5" /> Gerar Relatorio PDF/HTML
+            </Link>
+          </div>
         )}
       </div>
 

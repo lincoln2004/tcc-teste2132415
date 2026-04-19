@@ -5,6 +5,7 @@ from loguru import logger
 
 from app.algoritmos.estatisticos.metodos_estatisticos import IQRDeteccao, ZScoreDeteccao
 from app.algoritmos.machine_learning.metodos_ml import IsolationForestDeteccao, LocalOutlierFactorDeteccao
+from app.algoritmos.relatorios.geradores_relatorio import FabricaRelatorios
 from app.configuracoes.configuracoes import configuracoes
 from app.esquemas.analise_esquema import AnaliseCriar
 from app.servicos.detalhamento_analise import DetalhadorAnalise
@@ -144,3 +145,73 @@ class AnaliseServico:
             "mensagem": "Historico excluido com sucesso.",
             "analises_removidas": len(analises_removidas),
         }
+
+    @staticmethod
+    async def gerar_relatorio_analise(
+        analise_id: int,
+        usuario_id: int,
+        tipo_relatorio: str,
+        formato_saida: str = "html",
+    ) -> str:
+        """
+        Gera um relatorio de anomalias usando bibliotecas especializadas (PyCaret, DeepChecks, Sweetviz, YData-Profiling).
+        Retorna o caminho do arquivo gerado.
+        """
+        analise = await AnaliseRepositorio.obter_por_id_e_usuario(analise_id, usuario_id)
+        if not analise:
+            raise ValueError("Analise nao encontrada para o usuario informado.")
+
+        if analise.status != "concluido" or not analise.caminho_resultado_csv:
+            raise ValueError("Analise deve estar concluida e possuir arquivo de resultado.")
+
+        # Carregar dados tratados da analise
+        df_resultado = ProcessadorDados.carregar_arquivo(analise.caminho_resultado_csv, "csv")
+
+        # Selecionar apenas colunas numericas para os relatorios
+        colunas_numericas = df_resultado.select_dtypes(include=[np.number]).columns.tolist()
+        # Remover colunas de flag e score se existirem
+        colunas_numericas = [c for c in colunas_numericas if c not in ["anomalia_flag", "anomalia_score"]]
+
+        if not colunas_numericas:
+            raise ValueError("Nenhuma coluna numerica encontrada para gerar o relatorio.")
+
+        df_relatorio = df_resultado[colunas_numericas].copy()
+
+        # Obter dataset original para metadados
+        dataset = await DatasetRepositorio.obter_por_id(analise.dataset_id)
+        if not dataset:
+            raise ValueError("Dataset nao encontrado.")
+
+        df_original = ProcessadorDados.carregar_arquivo(dataset.caminho_arquivo, dataset.formato)
+        df_limpo = ProcessadorDados.limpar_dados(df_original, analise.colunas_selecionadas)
+
+        # Gerar nome do arquivo de saida
+        timestamp = int(np.datetime64(analise.criado_em).astype(int))
+        nome_arquivo = f"relatorio_{tipo_relatorio}_{analise_id}_{timestamp}.{formato_saida}"
+        caminho_saida = os.path.join(configuracoes.UPLOAD_DIR, nome_arquivo)
+
+        try:
+            # Usar a fabrica para obter o gerador apropriado
+            gerador = FabricaRelatorios.obter_gerador(tipo_relatorio)
+            
+            # Usar dados limpos para o relatorio
+            caminho_gerado = gerador.gerar_relatorio(df_limpo, caminho_saida)
+            
+            logger.info(f"Relatorio {tipo_relatorio} gerado com sucesso: {caminho_gerado}")
+            return caminho_gerado
+        except Exception as erro:
+            logger.error(f"Erro ao gerar relatorio {tipo_relatorio}: {erro}")
+            AnaliseServico.remover_arquivo_resultado_se_existir(caminho_saida)
+            raise
+
+    @staticmethod
+    def listar_tipos_relatorios() -> list[dict[str, str]]:
+        """
+        Retorna lista de tipos de relatorios disponiveis com descricoes.
+        """
+        return [
+            {"id": "pycaret", "nome": "PyCaret", "descricao": "Analise com machine learning automatizado"},
+            {"id": "deepchecks", "nome": "DeepChecks", "descricao": "Testes de integridade e qualidade de dados"},
+            {"id": "sweetviz", "nome": "Sweetviz", "descricao": "Relatorio exploratorio visual e interativo"},
+            {"id": "ydata_profiling", "nome": "YData-Profiling", "descricao": "Perfil detalhado dos dados com estatisticas"},
+        ]
