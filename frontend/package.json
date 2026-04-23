@@ -1,0 +1,32 @@
+{
+  "name": "frontend2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc"
+  },
+  "dependencies": {
+    "@react-router/node": "7.14.0",
+    "@react-router/serve": "7.14.0",
+    "@rolldown/binding-win32-x64-msvc": "^1.0.0-rc.15",
+    "isbot": "^5.1.36",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "7.14.0",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@react-router/dev": "7.14.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^22",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.3",
+    "vite-tsconfig-paths": "^6.1.1"
+  }
+}
