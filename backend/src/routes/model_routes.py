@@ -118,7 +118,7 @@ def generate_report(info: ReportRequest, file_id: str):
             model_ids=info.selecionados,
             numeric_cols=num_cols,
             categorical_cols=cat_cols,
-            contamination=0.05,
+            contamination= info.threshold or 0.05,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Falha na detecção: {e}")

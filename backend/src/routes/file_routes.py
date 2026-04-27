@@ -10,9 +10,9 @@ load_dotenv()
 
 router = APIRouter(prefix="/files", tags=["files"])
 
-def delete_old_files(minutes: int = 20):
+def delete_old_files(minutes: int = 10):
     """
-    Deleta arquivos do banco e do storage que foram criados há mais de 'minutes' minutos.
+    Deleta arquivos do banco e do storage que foram criados há mais dez 'minutes' minutos.
     Retorna a quantidade de arquivos deletados.
     """
     try:
@@ -123,6 +123,9 @@ async def upload_file(documento: UploadFile = File(...)):
 
 @router.get("/{file_id}", response_model=FileInfoResponse)
 async def get_file(file_id: str):
+    
+    delete_old_files(10)
+    
     result = (
         supabase.table(os.getenv("SUPABASE_TABLE"))
         .select("*")
