@@ -47,7 +47,7 @@ def detect(df: pd.DataFrame, columns: list[str], contamination: float = 0.05) ->
         # p-valor por valor: P(X <= count_observado | n, p_uniforme)
         pval_map = {}
         for val, count in counts.items():
-            pval = stats.binom_test(count, n=n, p=p_uniform, alternative="less")
+            pval = stats.binomtest(count, n=n, p=p_uniform, alternative="less").pvalue
             pval_map[val] = pval
 
         col_pvals = X[col].map(pval_map).fillna(1.0).values

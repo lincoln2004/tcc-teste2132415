@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router'
 import { useState, useRef, useEffect } from 'react'
 
-const API = 'http://localhost:5000/api'
+const API = import.meta.env.VITE_API_URL
 
 
 export default function UploadPage() {

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 
-const API = 'http://localhost:5000/api'
+const API = import.meta.env.VITE_API_URL
 
 type Modelo = { id: string; nome: string; tipo: 'numerico' | 'categorico' }
 
