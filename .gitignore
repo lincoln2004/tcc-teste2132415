@@ -1,6 +1,8 @@
-.env 
+.env
+!frontend/.env
 node_modules
 venv
+backend/.venv
 __pycache__
 build
 benchmark_results

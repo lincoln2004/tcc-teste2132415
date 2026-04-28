@@ -6,7 +6,7 @@ import {
   AreaChart, Area, Scatter, ReferenceLine,
 } from 'recharts'
 
-const API = 'http://localhost:5000/api'
+const API = import.meta.env.VITE_API_URL
 
 // ─── tipos ────────────────────────────────────────────────────────────────────
 type AnaliseColuna = {
