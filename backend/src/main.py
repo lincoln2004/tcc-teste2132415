@@ -21,3 +21,7 @@ app.include_router(model_routes.router, prefix="/api")
 @app.get("/")
 def health():
     return {"status": "ok"}
+
+@app.head("/")
+def health_head():
+    return None
